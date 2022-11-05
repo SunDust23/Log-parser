@@ -19,7 +19,7 @@ class MainClass
         if (Directory.Exists(path))
         {
             logFiles = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(s => s.EndsWith(".log") || s.EndsWith(".txt")).ToList();
+                .Where(s => (s.EndsWith(".log") || s.EndsWith(".txt")) && !s.EndsWith("output.txt")).ToList();
         }
         else if (File.Exists(path))
         {
@@ -32,28 +32,45 @@ class MainClass
 
         //Console.WriteLine(logFiles.Aggregate((A, B) => A + '\n' + B));
 
+        //Создаём или перезаписываем файл в той же папке с названием output.txt
+        string outputPath = Path.Combine(path, "output.txt");
+
+        using StreamWriter sw = new StreamWriter(outputPath, false);
+
         foreach (string logFile in logFiles)
         {
             try
             {
+                int lineCounts = 0; 
+                using var progress = new ProgressBar();
                 using (StreamReader sr = new StreamReader(logFile))
                 {
+                    Console.Write("Read file \"" + logFile + "\": ");
                     while (!sr.EndOfStream)
                     {
                         string line = sr.ReadLine();
+
+                        progress.Report(sr.BaseStream.Position * 1.0 / sr.BaseStream.Length);
+                        //Искусственно замедляем чтение файла для  наглядности работы Progress bar
+                        //Thread.Sleep(1);
+
                         MatchCollection matches = regex.Matches(line);
                         if (matches.Count > 0)
                         {
-                            Console.WriteLine(line);
+                            lineCounts++;
+                            //Console.WriteLine(line);
+                            sw.WriteLine("{0}:\t{1}", logFile, line);
+
                         }
                     }
                 }
+                Console.WriteLine("Done!");
+                Console.WriteLine("Founded lines: " + lineCounts);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
-
         }
 
     }
