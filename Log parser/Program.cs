@@ -34,44 +34,51 @@ class MainClass
 
         //Создаём или перезаписываем файл в той же папке с названием output.txt
         string outputPath = Path.Combine(path, "output.txt");
-
-        using StreamWriter sw = new StreamWriter(outputPath, false);
-
-        foreach (string logFile in logFiles)
+        try
         {
-            try
+            using StreamWriter sw = new StreamWriter(outputPath, false);
+
+            foreach (string logFile in logFiles)
             {
-                int lineCounts = 0; 
-                using var progress = new ProgressBar();
-                using (StreamReader sr = new StreamReader(logFile))
+                try
                 {
-                    Console.Write("Read file \"" + logFile + "\": ");
-                    while (!sr.EndOfStream)
+                    int lineCounts = 0;
+                    using var progress = new ProgressBar();
+                    using (StreamReader sr = new StreamReader(logFile))
                     {
-                        string line = sr.ReadLine();
-
-                        progress.Report(sr.BaseStream.Position * 1.0 / sr.BaseStream.Length);
-                        //Искусственно замедляем чтение файла для  наглядности работы Progress bar
-                        //Thread.Sleep(1);
-
-                        MatchCollection matches = regex.Matches(line);
-                        if (matches.Count > 0)
+                        Console.Write("Read file \"" + logFile + "\": ");
+                        while (!sr.EndOfStream)
                         {
-                            lineCounts++;
-                            //Console.WriteLine(line);
-                            sw.WriteLine("{0}:\t{1}", logFile, line);
+                            string line = sr.ReadLine();
 
+                            progress.Report(sr.BaseStream.Position * 1.0 / sr.BaseStream.Length);
+                            //Искусственно замедляем чтение файла для  наглядности работы Progress bar
+                            Thread.Sleep(1);
+
+                            MatchCollection matches = regex.Matches(line);
+                            if (matches.Count > 0)
+                            {
+                                lineCounts++;
+                                //Console.WriteLine(line);
+                                sw.WriteLine("{0}:\t{1}", logFile, line);
+
+                            }
                         }
                     }
+                    Console.WriteLine("Done!");
+                    Console.WriteLine("Founded lines: " + lineCounts);
                 }
-                Console.WriteLine("Done!");
-                Console.WriteLine("Founded lines: " + lineCounts);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error opening file for reading");
+                    Console.WriteLine(ex.ToString() + "\n");
+                }
             }
         }
-
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error opening file for writing");
+            Console.WriteLine(ex.ToString() + "\n");
+        }
     }
 }
