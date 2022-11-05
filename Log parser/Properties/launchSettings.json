@@ -2,7 +2,7 @@
   "profiles": {
     "Log parser": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\"
+      "commandLineArgs": "D:\\ [dD]evice0$"
     }
   }
 }
